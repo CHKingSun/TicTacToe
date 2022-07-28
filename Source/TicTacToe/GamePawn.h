@@ -8,7 +8,7 @@
 #include "GamePawn.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPiecePosCheckedEvent, int32, GridPos, EPieceState, PieceState, EPlayingState, NextState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPiecePosCheckedEvent, int32, GridPos, EPieceState, PieceState);
 
 
 UCLASS()

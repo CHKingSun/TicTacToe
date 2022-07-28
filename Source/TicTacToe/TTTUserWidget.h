@@ -51,7 +51,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UTexture2D* TexWhite;
 
-	
+	TArray<TPair<int32, EPlayingState>> PlaySteps;
+	bool CanUndo;
 
 public:
 
@@ -69,7 +70,7 @@ protected:
 	bool CheckEnd(bool Notify = true);
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OnGridInValidTips();
+	void ShowInvalidTips(const FString& Tips);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnGameEnd(int32 Result);
@@ -99,11 +100,16 @@ public:
 	void PlayerWaiting();
 
 	UFUNCTION(BlueprintCallable)
-	void OnPiecePosChecked(int32 GridPos, EPieceState PieceState, EPlayingState NextState);
+	void OnPiecePosChecked(int32 GridPos, EPieceState PieceState);
 
 	UFUNCTION(BlueprintCallable)
 	void BindPawn(class AOwnerPawn* Owner, class APCPawn* PC);
 
 	UFUNCTION()
 	int32 GetAvailablePos(EPieceState InState);
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckUndo();
+	UFUNCTION(BlueprintCallable)
+	void UndoLastStep();
 };

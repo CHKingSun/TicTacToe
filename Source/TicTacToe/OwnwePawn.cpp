@@ -7,6 +7,6 @@ void AOwnerPawn::OnGridChoose(int32 GridPos)
 {
 	if (OnPiecePosChecked.IsBound())
 	{
-		OnPiecePosChecked.Broadcast(GridPos, PieceState, EPlayingState::Waiting);
+		OnPiecePosChecked.Broadcast(GridPos, PieceState);
 	}
 }

@@ -26,7 +26,7 @@ FEventReply UTTTUserWidget::OnBGMouseButtonUp(FGeometry MyGeometry, const FPoint
 	uint32 Index = IndexVector.X + IndexVector.Y * ChessCol;
 	if (PieceData[Index].State != EPieceState::Empty)
 	{
-		OnGridInValidTips();
+		ShowInvalidTips(L"该格子已被占领！");
 		return  FEventReply(true);
 	}
 	
@@ -92,7 +92,7 @@ void UTTTUserWidget::RemoveFromParent()
 	Super::RemoveFromParent();
 }
 
-UTTTUserWidget::UTTTUserWidget() : ChessRow(3), ChessCol(3), GameState(ETTTGameState::NotInitialize)
+UTTTUserWidget::UTTTUserWidget() : ChessRow(3), ChessCol(3), GameState(ETTTGameState::NotInitialize), CanUndo(true)
 {
 }
 
@@ -117,6 +117,8 @@ void UTTTUserWidget::Reset()
 		if (Image) Image->RemoveFromParent();
 	}
 	ImgPieces.Empty();
+
+	PlaySteps.Empty();
 }
 
 void UTTTUserWidget::StartGame(EPlayingState NewPlayState)
@@ -142,7 +144,7 @@ void UTTTUserWidget::PauseGame()
 {
 	GameState = ETTTGameState::Pause;
 
-	UTTTUIManager::Get()->GetWidget(GetGameInstance(), "PauseUI");
+	// UTTTUIManager::Get()->GetWidget(GetGameInstance(), "PauseUI");
 }
 
 void UTTTUserWidget::ResumeGame()
@@ -164,7 +166,7 @@ void UTTTUserWidget::PlayerWaiting()
 	TxtMsg->SetText(FText::FromString(L"对面回合"));
 }
 
-void UTTTUserWidget::OnPiecePosChecked(int32 GridPos, EPieceState PieceState, EPlayingState NextState)
+void UTTTUserWidget::OnPiecePosChecked(int32 GridPos, EPieceState PieceState)
 {
 	FIntVector2 IndexVector = FIntVector2(GridPos % ChessCol, GridPos / ChessCol);
 	auto Pos = ImgBG->GetGridPosition(IndexVector);
@@ -185,10 +187,13 @@ void UTTTUserWidget::OnPiecePosChecked(int32 GridPos, EPieceState PieceState, EP
 	PieceData[GridPos].State = PieceState;
 	ImgPieces.Add(GridPos, ImgGrid);
 
+	PlaySteps.Add({GridPos, PlayState});
+	if (PlayState == EPlayingState::Playing) CanUndo = true;
+
 	if (CheckEnd()) return;
 
-	if (NextState == EPlayingState::Playing) PlayerPlaying();
-	else if (NextState == EPlayingState::Waiting) PlayerWaiting();
+	if (PlayState == EPlayingState::Waiting) PlayerPlaying();
+	else if (PlayState == EPlayingState::Playing) PlayerWaiting();
 }
 
 void UTTTUserWidget::BindPawn(AOwnerPawn* Owner, APCPawn* PC)
@@ -238,4 +243,48 @@ int32 UTTTUserWidget::GetAvailablePos(EPieceState InState)
 	}
 
 	return AvailableIndices[FRandomStream(UKismetSystemLibrary::GetGameTimeInSeconds(GetWorld())).RandHelper(AvailableIndices.Num())];
+}
+
+bool UTTTUserWidget::CheckUndo()
+{
+	if (GameState != ETTTGameState::Start) return false;
+	
+	if (!CanUndo)
+	{
+		ShowInvalidTips(L"只允许撤回一步哦");
+		return false;
+	}
+
+	int32 LastStep = -1;
+	for (int32 Index = PlaySteps.Num() - 1; Index >= 0; --Index)
+	{
+		if (PlaySteps[Index].Value == EPlayingState::Playing)
+		{
+			LastStep = Index;
+			break;
+		}
+	}
+
+	if (LastStep == -1)
+	{
+		ShowInvalidTips(L"你还未下棋！");
+		return false;
+	}
+
+	return true;
+}
+
+void UTTTUserWidget::UndoLastStep()
+{
+	CanUndo = false;
+	for(int32 Index = PlaySteps.Num() - 1; Index >= 0; --Index)
+	{
+		int32 Pieceindex = PlaySteps[Index].Key;
+
+		UImage* Image = nullptr;
+		if (ImgPieces.RemoveAndCopyValue(Pieceindex, Image)) Image->RemoveFromParent();
+		PieceData[Pieceindex].State = EPieceState::Empty;
+		
+		if (PlaySteps[Index].Value == EPlayingState::Playing) break;
+	}
 }

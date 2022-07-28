@@ -17,6 +17,6 @@ class TICTACTOE_API APCPawn : public AGamePawn
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void OnPCTurn(int32 GridPos, EPieceState PState, EPlayingState NextState);
+	void OnPCTurn(int32 GridPos, EPieceState PState);
 };
 

@@ -6,7 +6,7 @@
 #include "TTTUIManager.h"
 #include "TTTUserWidget.h"
 
-void APCPawn::OnPCTurn(int32 GridPos, EPieceState PState, EPlayingState NextState)
+void APCPawn::OnPCTurn(int32 GridPos, EPieceState PState)
 {
 	auto GameUI = Cast<UTTTUserWidget>(UTTTUIManager::Get()->GetWidget(GetGameInstance(), "GameUI"));
 	int32 Index = GameUI->GetAvailablePos(PieceState);
@@ -14,6 +14,6 @@ void APCPawn::OnPCTurn(int32 GridPos, EPieceState PState, EPlayingState NextStat
 	
 	if (OnPiecePosChecked.IsBound())
 	{
-		OnPiecePosChecked.Broadcast(Index, PieceState, EPlayingState::Playing);
+		OnPiecePosChecked.Broadcast(Index, PieceState);
 	}
 }
