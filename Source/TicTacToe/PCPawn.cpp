@@ -9,7 +9,7 @@
 void APCPawn::OnPCTurn(int32 GridPos, EPieceState PState, EPlayingState NextState)
 {
 	auto GameUI = Cast<UTTTUserWidget>(UTTTUIManager::Get()->GetWidget(GetGameInstance(), "GameUI"));
-	int32 Index = GameUI->GetAvailablePos();
+	int32 Index = GameUI->GetAvailablePos(PieceState);
 	if (Index == -1) return;
 	
 	if (OnPiecePosChecked.IsBound())

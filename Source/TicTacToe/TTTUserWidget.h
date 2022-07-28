@@ -51,6 +51,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class UTexture2D* TexWhite;
 
+	
+
 public:
 
 	UPROPERTY(BlueprintAssignable)
@@ -64,7 +66,7 @@ protected:
 	FEventReply OnBGMouseMove(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 
 	UFUNCTION(BlueprintCallable)
-	bool CheckEnd();
+	bool CheckEnd(bool Notify = true);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnGridInValidTips();
@@ -103,5 +105,5 @@ public:
 	void BindPawn(class AOwnerPawn* Owner, class APCPawn* PC);
 
 	UFUNCTION()
-	int32 GetAvailablePos();
+	int32 GetAvailablePos(EPieceState InState);
 };

@@ -47,7 +47,7 @@ FEventReply UTTTUserWidget::OnBGMouseMove(FGeometry MyGeometry, const FPointerEv
 	return FEventReply(true);
 }
 
-bool UTTTUserWidget::CheckEnd()
+bool UTTTUserWidget::CheckEnd(bool Notify)
 {
 	constexpr static int32 Indices[][3] {
 		{0, 1, 2}, {3, 4, 5}, {6, 7, 8},
@@ -62,11 +62,11 @@ bool UTTTUserWidget::CheckEnd()
 			if (PlayState == EPlayingState::Playing)
 			{
 				// 赢
-				OnGameEnd(1);
+				if (Notify) OnGameEnd(1);
 			} else
 			{
 				// 输
-				OnGameEnd(-1);
+				if (Notify) OnGameEnd(-1);
 			}
 			return true;
 		}
@@ -78,7 +78,7 @@ bool UTTTUserWidget::CheckEnd()
 	}
 
 	// 平局
-	OnGameEnd(0);
+	if (Notify) OnGameEnd(0);
 	return true;
 }
 
@@ -92,7 +92,7 @@ void UTTTUserWidget::RemoveFromParent()
 	Super::RemoveFromParent();
 }
 
-UTTTUserWidget::UTTTUserWidget() : GameState(ETTTGameState::NotInitialize), ChessCol(3), ChessRow(3)
+UTTTUserWidget::UTTTUserWidget() : ChessRow(3), ChessCol(3), GameState(ETTTGameState::NotInitialize)
 {
 }
 
@@ -203,12 +203,39 @@ void UTTTUserWidget::BindPawn(AOwnerPawn* Owner, APCPawn* PC)
 	PC->OnPiecePosChecked.AddDynamic(this, &UTTTUserWidget::OnPiecePosChecked);
 }
 
-int32 UTTTUserWidget::GetAvailablePos()
+int32 UTTTUserWidget::GetAvailablePos(EPieceState InState)
 {
+	TArray<int32> AvailableIndices;
+	AvailableIndices.Reserve(PieceData.Num());
 	for (const auto& Data : PieceData)
 	{
-		if (Data.State == EPieceState::Empty) return Data.Index;
+		if (Data.State == EPieceState::Empty) AvailableIndices.Add(Data.Index);
 	}
 
-	return -1;
+	if (AvailableIndices.Num() == 0) return -1;
+
+	for (const auto& Index : AvailableIndices)
+	{
+		PieceData[Index].State = InState;
+		if (CheckEnd(false))
+		{
+			PieceData[Index].State = EPieceState::Empty;
+			return Index;
+		}
+		PieceData[Index].State = EPieceState::Empty;
+	}
+
+	const EPieceState AnimyState = InState == EPieceState::Black ? EPieceState::White : EPieceState::Black;
+	for (const auto& Index : AvailableIndices)
+	{
+		PieceData[Index].State = AnimyState;
+		if (CheckEnd(false))
+		{
+			PieceData[Index].State = EPieceState::Empty;
+			return Index;
+		}
+		PieceData[Index].State = EPieceState::Empty;
+	}
+
+	return AvailableIndices[FRandomStream(UKismetSystemLibrary::GetGameTimeInSeconds(GetWorld())).RandHelper(AvailableIndices.Num())];
 }
