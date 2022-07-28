@@ -3,6 +3,7 @@
 
 #include "TTTUIManager.h"
 #include "UserWidgetBase.h"
+#include "Kismet/GameplayStatics.h"
 
 
 UTTTUIManager* UTTTUIManager::Singleton = nullptr;
@@ -32,14 +33,24 @@ UUserWidgetBase* UTTTUIManager::GetWidget(UGameInstance* Instance, const FString
 
 	if (WidStruct == nullptr || (*(WidStruct->WidgetClass)) == nullptr) return nullptr;
 
+	UUserWidgetBase* Widget = WidStruct->Widget;
 	if (WidStruct->Widget == nullptr)
 	{
-		WidStruct->Widget = CreateWidget<UUserWidgetBase>(Instance, WidStruct->WidgetClass, FName(WidgetName));
-		WidStruct->Widget->SetWidgetName(WidgetName);
+		Widget = WidStruct->Widget = CreateWidget<UUserWidgetBase>(Instance, WidStruct->WidgetClass, FName(WidgetName));
+		Widget->SetWidgetName(WidgetName);
 	}
 
-	if (!WidStruct->Widget->IsInViewport()) WidStruct->Widget->AddToViewport();  // 默认添加到屏幕
-	return WidStruct->Widget;
+	if (!Widget->IsInViewport())
+	{
+		Widget->AddToViewport();  // 默认添加到屏幕
+		auto PlayerController = Instance->GetPrimaryPlayerController();
+		if (PlayerController)
+		{
+			PlayerController->SetShowMouseCursor(true);
+			PlayerController->SetInputMode(FInputModeUIOnly().SetWidgetToFocus(Widget->TakeWidget()));
+		}
+	}
+	return Widget;
 }
 
 void UTTTUIManager::RemoveWidget(const FString& WidgetName)
