@@ -45,6 +45,8 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	class UTextBlock* TxtMsg;
+	UPROPERTY(BlueprintReadWrite)
+	class UImage* ImgCursor;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UTexture2D* TexBlack;

@@ -41,8 +41,11 @@ FEventReply UTTTUserWidget::OnBGMouseButtonUp(FGeometry MyGeometry, const FPoint
 FEventReply UTTTUserWidget::OnBGMouseMove(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
 {
 	if (GameState != ETTTGameState::Start || PlayState != EPlayingState::Playing) return FEventReply(false);
-	// FVector2D Pos = MouseEvent.GetScreenSpacePosition() - MyGeometry.GetAbsolutePosition();
-	// UKismetSystemLibrary::PrintString(GetWorld(), Pos.ToString());
+
+	FVector2D Pos = MouseEvent.GetScreenSpacePosition() - MyGeometry.GetAbsolutePosition();
+	float Scale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+	ImgCursor->SetRenderTranslation(Pos / Scale);
+	if (!ImgCursor->IsVisible()) ImgCursor->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	
 	return FEventReply(true);
 }
@@ -203,6 +206,14 @@ void UTTTUserWidget::BindPawn(AOwnerPawn* Owner, APCPawn* PC)
 	Owner->OnPiecePosChecked.Clear();
 	Owner->OnPiecePosChecked.AddDynamic(this, &UTTTUserWidget::OnPiecePosChecked);
 	Owner->OnPiecePosChecked.AddDynamic(PC, &APCPawn::OnPCTurn);
+
+	if (Owner->GetPieceSate() == EPieceState::Black)
+	{
+		ImgCursor->SetBrushFromTexture(TexBlack, true);
+	} else
+	{
+		ImgCursor->SetBrushFromTexture(TexWhite, true);
+	}
 
 	PC->OnPiecePosChecked.Clear();
 	PC->OnPiecePosChecked.AddDynamic(this, &UTTTUserWidget::OnPiecePosChecked);
