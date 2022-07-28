@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveWidget(const FString& WidgetName);
 
+	UFUNCTION(BlueprintCallable)
+	void HideWidget(const FString& WidgetName);
+
 protected:
 	UPROPERTY()
 	TMap<FString, FWidgetPair> AllWidgets;

@@ -63,8 +63,20 @@ protected:
 	UFUNCTION()
 	FEventReply OnBGMouseMove(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 
+	UFUNCTION(BlueprintCallable)
+	bool CheckEnd();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnGridInValidTips();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnGameEnd(int32 Result);
+
+
 public:
 	UTTTUserWidget();
+	
+	virtual void RemoveFromParent() override;
 
 	UFUNCTION(BlueprintCallable)
 	void Reset();

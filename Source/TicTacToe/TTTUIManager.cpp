@@ -50,6 +50,8 @@ UUserWidgetBase* UTTTUIManager::GetWidget(UGameInstance* Instance, const FString
 			PlayerController->SetInputMode(FInputModeUIOnly().SetWidgetToFocus(Widget->TakeWidget()));
 		}
 	}
+
+	Widget->SetVisibility(ESlateVisibility::Visible);
 	return Widget;
 }
 
@@ -62,5 +64,16 @@ void UTTTUIManager::RemoveWidget(const FString& WidgetName)
 			Wid->RemoveFromParent();
 		}
 		WidStruct->Widget = nullptr;
+	}
+}
+
+void UTTTUIManager::HideWidget(const FString& WidgetName)
+{
+	if (const auto WidStruct = AllWidgets.Find(WidgetName))
+	{
+		if (const auto& Wid = WidStruct->Widget)
+		{
+			Wid->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 }

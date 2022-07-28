@@ -26,7 +26,7 @@ FEventReply UTTTUserWidget::OnBGMouseButtonUp(FGeometry MyGeometry, const FPoint
 	uint32 Index = IndexVector.X + IndexVector.Y * ChessCol;
 	if (PieceData[Index].State != EPieceState::Empty)
 	{
-		// TODO tips
+		OnGridInValidTips();
 		return  FEventReply(true);
 	}
 	
@@ -45,6 +45,51 @@ FEventReply UTTTUserWidget::OnBGMouseMove(FGeometry MyGeometry, const FPointerEv
 	// UKismetSystemLibrary::PrintString(GetWorld(), Pos.ToString());
 	
 	return FEventReply(true);
+}
+
+bool UTTTUserWidget::CheckEnd()
+{
+	constexpr static int32 Indices[][3] {
+		{0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+		{0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+		{0, 4, 8}, {2, 4 ,6}
+	};
+
+	for (const auto& Index : Indices)
+	{
+		if (PieceData[Index[0]].State != EPieceState::Empty && PieceData[Index[0]].State == PieceData[Index[1]].State && PieceData[Index[1]].State == PieceData[Index[2]].State)
+		{
+			if (PlayState == EPlayingState::Playing)
+			{
+				// 赢
+				OnGameEnd(1);
+			} else
+			{
+				// 输
+				OnGameEnd(-1);
+			}
+			return true;
+		}
+	}
+
+	for (const auto& Data : PieceData)
+	{
+		if (Data.State == EPieceState::Empty) return false;
+	}
+
+	// 平局
+	OnGameEnd(0);
+	return true;
+}
+
+void UTTTUserWidget::RemoveFromParent()
+{
+	for (const auto& [_, Image] : ImgPieces)
+	{
+		Image->RemoveFromParent();
+	}
+	
+	Super::RemoveFromParent();
 }
 
 UTTTUserWidget::UTTTUserWidget() : GameState(ETTTGameState::NotInitialize), ChessCol(3), ChessRow(3)
@@ -135,11 +180,12 @@ void UTTTUserWidget::OnPiecePosChecked(int32 GridPos, EPieceState PieceState, EP
 	if (PieceState == EPieceState::Black) Tex = TexBlack;
 	else if (PieceState == EPieceState::White) Tex = TexWhite;
 	ImgGrid->SetBrushFromTexture(Tex, true);
+	ImgGrid->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
 	PieceData[GridPos].State = PieceState;
 	ImgPieces.Add(GridPos, ImgGrid);
 
-	// TODO win
+	if (CheckEnd()) return;
 
 	if (NextState == EPlayingState::Playing) PlayerPlaying();
 	else if (NextState == EPlayingState::Waiting) PlayerWaiting();
@@ -149,9 +195,11 @@ void UTTTUserWidget::BindPawn(AOwnerPawn* Owner, APCPawn* PC)
 {
 	OnGridChoose.AddDynamic(Owner, &AOwnerPawn::AOwnerPawn::OnGridChoose);
 
+	Owner->OnPiecePosChecked.Clear();
 	Owner->OnPiecePosChecked.AddDynamic(this, &UTTTUserWidget::OnPiecePosChecked);
 	Owner->OnPiecePosChecked.AddDynamic(PC, &APCPawn::OnPCTurn);
-	
+
+	PC->OnPiecePosChecked.Clear();
 	PC->OnPiecePosChecked.AddDynamic(this, &UTTTUserWidget::OnPiecePosChecked);
 }
 
