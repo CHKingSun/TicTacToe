@@ -32,6 +32,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	EPlayingState PlayState;
 
+	UPROPERTY(BlueprintReadWrite)
+	EGameDifficulty Difficulty;
+
 	UPROPERTY()
 	TArray<FPieceStruct> PieceData;
 
@@ -93,7 +96,7 @@ public:
 	void Reset();
 	
 	UFUNCTION(BlueprintCallable)
-	void StartGame(EPlayingState NewPlayState);
+	void StartGame(EPlayingState NewPlayState, EGameDifficulty NewDifficulty);
 
 	UFUNCTION(BlueprintCallable)
 	void PauseGame();

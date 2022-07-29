@@ -15,7 +15,7 @@ enum class ETTTGameState : uint8
 };
 
 
-UENUM()
+UENUM(BlueprintType)
 enum class EPlayingState : uint8
 {
 	Playing,
@@ -29,6 +29,15 @@ enum class EPieceState : uint8
 	Empty,  // 没有被下
 	Black,  // 黑棋
 	White,  // 白棋
+};
+
+
+UENUM(BlueprintType)
+enum class EGameDifficulty : uint8
+{
+	Easy = 0,
+	Normal = 1,
+	Diffcult = 2,
 };
 
 

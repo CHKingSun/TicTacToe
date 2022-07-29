@@ -136,7 +136,7 @@ void UTTTUserWidget::Reset()
 	PlaySteps.Empty();
 }
 
-void UTTTUserWidget::StartGame(EPlayingState NewPlayState)
+void UTTTUserWidget::StartGame(EPlayingState NewPlayState, EGameDifficulty NewDifficulty)
 {
 	if (GameState != ETTTGameState::NotInitialize)
 	{
@@ -146,6 +146,7 @@ void UTTTUserWidget::StartGame(EPlayingState NewPlayState)
 	Reset();
 
 	GameState = ETTTGameState::Start;
+	Difficulty = NewDifficulty;
 	if (NewPlayState == EPlayingState::Playing)
 	{
 		PlayerPlaying();
@@ -244,27 +245,33 @@ int32 UTTTUserWidget::GetAvailablePos(EPieceState InState)
 
 	if (AvailableIndices.Num() == 0) return -1;
 
-	for (const auto& Index : AvailableIndices)
+	if (Difficulty == EGameDifficulty::Diffcult)
 	{
-		PieceData[Index].State = InState;
-		if (CheckEnd(false))
+		for (const auto& Index : AvailableIndices)
 		{
+			PieceData[Index].State = InState;
+			if (CheckEnd(false))
+			{
+				PieceData[Index].State = EPieceState::Empty;
+				return Index;
+			}
 			PieceData[Index].State = EPieceState::Empty;
-			return Index;
 		}
-		PieceData[Index].State = EPieceState::Empty;
 	}
 
-	const EPieceState AnimyState = InState == EPieceState::Black ? EPieceState::White : EPieceState::Black;
-	for (const auto& Index : AvailableIndices)
+	if (Difficulty == EGameDifficulty::Normal || Difficulty == EGameDifficulty::Diffcult)
 	{
-		PieceData[Index].State = AnimyState;
-		if (CheckEnd(false))
+		const EPieceState AnimyState = InState == EPieceState::Black ? EPieceState::White : EPieceState::Black;
+		for (const auto& Index : AvailableIndices)
 		{
+			PieceData[Index].State = AnimyState;
+			if (CheckEnd(false))
+			{
+				PieceData[Index].State = EPieceState::Empty;
+				return Index;
+			}
 			PieceData[Index].State = EPieceState::Empty;
-			return Index;
 		}
-		PieceData[Index].State = EPieceState::Empty;
 	}
 
 	return AvailableIndices[FRandomStream(UKismetSystemLibrary::GetGameTimeInSeconds(GetWorld())).RandHelper(AvailableIndices.Num())];
