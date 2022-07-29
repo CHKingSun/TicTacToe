@@ -6,8 +6,13 @@
 #include "TTTUIManager.h"
 #include "TTTUserWidget.h"
 
-void APCPawn::OnPCTurn(int32 GridPos, EPieceState PState)
+
+void APCPawn::OnPlayStateChange(EPlayingState NewPlayState)
 {
+	Super::OnPlayStateChange(NewPlayState);
+
+	if (NewPlayState != EPlayingState::Waiting) return;
+
 	auto GameUI = Cast<UTTTUserWidget>(UTTTUIManager::Get()->GetWidget(GetGameInstance(), "GameUI"));
 	int32 Index = GameUI->GetAvailablePos(PieceState);
 	if (Index == -1) return;

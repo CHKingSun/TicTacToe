@@ -16,7 +16,7 @@ class TICTACTOE_API APCPawn : public AGamePawn
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void OnPCTurn(int32 GridPos, EPieceState PState);
+
+	virtual void OnPlayStateChange(EPlayingState NewPlayState) override;
 };
 

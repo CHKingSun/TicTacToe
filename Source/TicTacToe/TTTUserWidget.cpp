@@ -42,10 +42,22 @@ FEventReply UTTTUserWidget::OnBGMouseMove(FGeometry MyGeometry, const FPointerEv
 {
 	if (GameState != ETTTGameState::Start || PlayState != EPlayingState::Playing) return FEventReply(false);
 
-	FVector2D Pos = MouseEvent.GetScreenSpacePosition() - MyGeometry.GetAbsolutePosition();
-	float Scale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
-	ImgCursor->SetRenderTranslation(Pos / Scale);
+	FVector2D Pos = (MouseEvent.GetScreenSpacePosition() - MyGeometry.GetAbsolutePosition()) / UWidgetLayoutLibrary::GetViewportScale(GetWorld());
+	ImgCursor->SetRenderTranslation(Pos);
 	if (!ImgCursor->IsVisible()) ImgCursor->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	FIntVector2 IndexVector = ImgBG->GetIndexByPosition(Pos);
+
+	uint32 Index = IndexVector.X + IndexVector.Y * ChessCol;
+	bool bShowImgGrid = IndexVector.X >= 0 && IndexVector.X < ChessCol && IndexVector.Y >= 0 && IndexVector.Y < ChessRow
+					&& PieceData[Index].State == EPieceState::Empty;
+	if (bShowImgGrid)
+	{
+		ImgHint->SetRenderTranslation(ImgBG->GetGridPosition(IndexVector));
+		if (!ImgHint->IsVisible()) ImgHint->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	} else if (ImgHint->IsVisible())
+	{
+		ImgHint->SetVisibility(ESlateVisibility::Hidden);
+	}
 	
 	return FEventReply(true);
 }
@@ -160,6 +172,7 @@ void UTTTUserWidget::PlayerPlaying()
 	PlayState = EPlayingState::Playing;
 
 	TxtMsg->SetText(FText::FromString(L"你的回合"));
+	if (OnPlayStateChange.IsBound()) OnPlayStateChange.Broadcast(PlayState);
 }
 
 void UTTTUserWidget::PlayerWaiting()
@@ -167,6 +180,7 @@ void UTTTUserWidget::PlayerWaiting()
 	PlayState = EPlayingState::Waiting;
 
 	TxtMsg->SetText(FText::FromString(L"对面回合"));
+	if (OnPlayStateChange.IsBound()) OnPlayStateChange.Broadcast(PlayState);
 }
 
 void UTTTUserWidget::OnPiecePosChecked(int32 GridPos, EPieceState PieceState)
@@ -201,11 +215,11 @@ void UTTTUserWidget::OnPiecePosChecked(int32 GridPos, EPieceState PieceState)
 
 void UTTTUserWidget::BindPawn(AOwnerPawn* Owner, APCPawn* PC)
 {
-	OnGridChoose.AddDynamic(Owner, &AOwnerPawn::AOwnerPawn::OnGridChoose);
+	OnGridChoose.AddDynamic(Owner, &AOwnerPawn::OnGridChoose);
+	OnPlayStateChange.AddDynamic(PC, &APCPawn::OnPlayStateChange);
 
 	Owner->OnPiecePosChecked.Clear();
 	Owner->OnPiecePosChecked.AddDynamic(this, &UTTTUserWidget::OnPiecePosChecked);
-	Owner->OnPiecePosChecked.AddDynamic(PC, &APCPawn::OnPCTurn);
 
 	if (Owner->GetPieceSate() == EPieceState::Black)
 	{

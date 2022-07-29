@@ -9,6 +9,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGridChooseEvent, int32, GridPos);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayStateChangeEvent, EPlayingState, NewPlayState);
 
 
 /**
@@ -47,6 +48,8 @@ protected:
 	class UTextBlock* TxtMsg;
 	UPROPERTY(BlueprintReadWrite)
 	class UImage* ImgCursor;
+	UPROPERTY(BlueprintReadWrite)
+	class UImage* ImgHint;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UTexture2D* TexBlack;
@@ -60,6 +63,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FGridChooseEvent OnGridChoose;
+
+	UPROPERTY(BlueprintAssignable)
+	FPlayStateChangeEvent OnPlayStateChange;
 
 protected:
 

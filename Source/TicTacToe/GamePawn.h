@@ -39,4 +39,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	EPieceState GetPieceSate()const { return PieceState; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void OnPlayStateChange(EPlayingState NewPlayState) {}
 };
